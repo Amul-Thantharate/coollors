@@ -1,22 +1,28 @@
-name: build 
+on: [push]
 
-on:
-    push:
-        branches: 
-            - master
-
-jobs: 
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v2
-
-            - name: Set up Node.js
-              uses: actions/setup-node@v2
-              with:
-                node-version: '21'
-
-            - name: Install dependencies
-              run: npm install
-
+jobs:
+  depchecktest:
+    runs-on: ubuntu-latest
+    name: depecheck_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build project with nodejs
+        run:  npm install
+      - name: Depcheck
+        uses: dependency-check/Dependency-Check_Action@main
+        id: Depcheck
+        with:
+          project: 'Coollors'
+          path: '.' 
+          format: 'HTML'
+          out: 'reports' # this is the default, no need to specify unless you wish to override it
+          args: >
+            --enableRetired
+            --disableYarnAudit
+            --disableNodeAudit
+      - name: Upload Test results
+        uses: actions/upload-artifact@master
+        with:
+            name: Depcheck report
+            path: ${{github.workspace}}/reports
