@@ -26,3 +26,18 @@ jobs:
         with:
             name: Depcheck report
             path: ${{github.workspace}}/reports
+      - name: Install trivy
+        run: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+          trivy --version
+      - name: Trivy file system Scan
+        run: trivy fs --exit-code 0 --severity HIGH,CRITICAL --no-progress  . > trivy_fs_scan.html
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@master
+        with:
+            name: Trivy report
+            path: ${{github.workspace}}/trivy_fs_scan.html
